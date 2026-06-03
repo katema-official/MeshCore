@@ -63,8 +63,12 @@ private:
 public:
     void renderWorldSpaceMesh(const std::string &group, const std::shared_ptr<WorldSpaceMesh> &worldSpaceMesh, const Color& color = Color::White());
     void renderWorldSpaceMesh(const std::string &group, const std::shared_ptr<WorldSpaceMesh> &worldSpaceMesh,  const PhongMaterial& material);
+    void renderWorldSpaceMesh(const std::string &group, const std::shared_ptr<WorldSpaceMesh> &worldSpaceMesh, const std::string& name, const Color& color = Color::White());
+    void renderWorldSpaceMesh(const std::string &group, const std::shared_ptr<WorldSpaceMesh> &worldSpaceMesh, const std::string& name, const PhongMaterial& material);
     void renderWorldSpaceMesh(const std::string &group, const WorldSpaceMesh &worldSpaceMesh, const Color& color = Color::White());
     void renderWorldSpaceMesh(const std::string &group, const WorldSpaceMesh &worldSpaceMesh,  const PhongMaterial& material);
+    void renderWorldSpaceMesh(const std::string &group, const WorldSpaceMesh &worldSpaceMesh, const std::string& name, const Color& color = Color::White());
+    void renderWorldSpaceMesh(const std::string &group, const WorldSpaceMesh &worldSpaceMesh, const std::string& name, const PhongMaterial& material);
 
     void renderBox(const std::string &group, const std::string& name, const AABB &aabb, const Transformation& transformation=Transformation(), const Color& = Color::White());
     void renderPlane(const std::string &group, const std::string &name, const Plane &plane, const Color &color);

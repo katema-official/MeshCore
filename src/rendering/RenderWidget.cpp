@@ -61,6 +61,14 @@ void RenderWidget::renderWorldSpaceMesh(const std::string &group, const std::sha
     renderWorldSpaceMesh(group, *worldSpaceMesh, material);
 }
 
+void RenderWidget::renderWorldSpaceMesh(const std::string &group, const std::shared_ptr<WorldSpaceMesh> &worldSpaceMesh, const std::string& name, const Color& color) {
+    renderWorldSpaceMesh(group, *worldSpaceMesh, name, PhongMaterial(color));
+}
+
+void RenderWidget::renderWorldSpaceMesh(const std::string &group, const std::shared_ptr<WorldSpaceMesh> &worldSpaceMesh, const std::string& name, const PhongMaterial& material) {
+    renderWorldSpaceMesh(group, *worldSpaceMesh, name, material);
+}
+
 void RenderWidget::renderWorldSpaceMesh(const std::string &group, const WorldSpaceMesh &worldSpaceMesh,  const Color& color) {
     renderWorldSpaceMesh(group, worldSpaceMesh, PhongMaterial(color));
 }
@@ -71,6 +79,20 @@ void RenderWidget::renderWorldSpaceMesh(const std::string &group, const WorldSpa
                               Q_ARG(std::string, group),
                               Q_ARG(WorldSpaceMesh, WorldSpaceMesh(worldSpaceMesh)), // We should copy the actual worldSpaceMesh object here, otherwise the transformation could change before the render thread reads it
                               Q_ARG(PhongMaterial, material),
+                              Q_ARG(RenderWidget*, this));
+}
+
+void RenderWidget::renderWorldSpaceMesh(const std::string &group, const WorldSpaceMesh &worldSpaceMesh, const std::string& name, const Color& color) {
+    renderWorldSpaceMesh(group, worldSpaceMesh, name, PhongMaterial(color));
+}
+
+void RenderWidget::renderWorldSpaceMesh(const std::string &group, const WorldSpaceMesh &worldSpaceMesh, const std::string& name, const PhongMaterial& material) {
+    QMetaObject::invokeMethod(this->getOpenGLWidget(), "renderWorldSpaceMeshSlot",
+                              Qt::AutoConnection,
+                              Q_ARG(std::string, group),
+                              Q_ARG(WorldSpaceMesh, WorldSpaceMesh(worldSpaceMesh)),
+                              Q_ARG(PhongMaterial, material),
+                              Q_ARG(std::string, name),
                               Q_ARG(RenderWidget*, this));
 }
 

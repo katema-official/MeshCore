@@ -541,6 +541,10 @@ std::unordered_map<std::string, std::shared_ptr<AbstractRenderModel>>& OpenGLWid
 }
 
 void OpenGLWidget::renderWorldSpaceMeshSlot(const std::string &group, const WorldSpaceMesh &worldSpaceMesh, const PhongMaterial &material, RenderWidget* renderWidget){
+    renderWorldSpaceMeshSlot(group, worldSpaceMesh, material, std::string(), renderWidget);
+}
+
+void OpenGLWidget::renderWorldSpaceMeshSlot(const std::string &group, const WorldSpaceMesh &worldSpaceMesh, const PhongMaterial &material, const std::string& name, RenderWidget* renderWidget){
 
     // Find the group
     auto& renderModelsMap = this->getOrInsertRenderModelsMap(group);
@@ -554,6 +558,10 @@ void OpenGLWidget::renderWorldSpaceMeshSlot(const std::string &group, const Worl
         // No entry present yet, create new render Model
         auto renderMesh = std::make_shared<RenderMesh>(worldSpaceMesh);
 
+        if (!name.empty()) {
+            renderMesh->setName(name);
+        }
+
         // Insert it in the renderModelsMap
         modelIterator = renderModelsMap.insert({worldSpaceMesh.getId(), renderMesh}).first;
 
@@ -564,6 +572,8 @@ void OpenGLWidget::renderWorldSpaceMeshSlot(const std::string &group, const Worl
         renderWidget->addControlWidget(group, renderMesh);
 
         this->updateSortedRenderModels();
+    } else if (!name.empty()) {
+        modelIterator->second->setName(name);
     }
 
     // Set the color
