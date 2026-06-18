@@ -15,6 +15,8 @@ class Random{
 public:
     explicit Random(int seed=0): randomEngine(seed){}
 
+    boost::random::mt19937& getEngine() {return randomEngine;}
+
     int nextInteger(int lowerBoundInclusive=0, int upperBoundInclusive=std::numeric_limits<int>::max()) const {
         assert(lowerBoundInclusive <= upperBoundInclusive && "The upper bound should be at least as great as the lower bound");
         return boost::random::uniform_int_distribution<int>(lowerBoundInclusive, upperBoundInclusive)(randomEngine);
