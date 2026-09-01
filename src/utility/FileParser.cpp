@@ -10,7 +10,7 @@
 #include <fstream>
 #include <vector>
 #include <filesystem>
-#include <unordered_set>
+#include <unordered_map>
 #include <glm/gtx/hash.hpp>
 #include <array>
 #include <cstring>
@@ -261,7 +261,7 @@ std::shared_ptr<ModelSpaceMesh> FileParser::parseFileSTL(const std::string &file
         return FileParser::parseFileBinarySTL(filePath);
     }
 
-    std::unordered_set<Vertex> vertexSet;
+    std::unordered_map<Vertex, unsigned int> vertexToIndex;
     std::vector<Vertex> vertices;
     std::vector<IndexTriangle> triangles;
     while(getline(stream, line)){
@@ -273,25 +273,17 @@ std::shared_ptr<ModelSpaceMesh> FileParser::parseFileSTL(const std::string &file
             getline(stream, line);
             assert(line.find("outer loop") != std::string::npos);
 
-            std::vector<unsigned int> indices;
+            std::array<unsigned int, 3> indices{};
             for(int i=0; i<3; i++){
                 Vertex vertex = readASCIISTLVertexLine(stream);
 
                 // We try to find if the vertex already exists, as we don't want to duplicate it
-                if(vertexSet.find(vertex)!=vertexSet.end()){
-                    auto position = std::find(vertices.rbegin(), vertices.rend(), vertex); // Searching the list backwards significantly speeds up the search
-                    auto index = (unsigned int)(vertices.size() - std::distance(vertices.rbegin(), position) - 1);
-                    assert(index < vertices.size());
-                    assert(index >= 0);
-                    indices.emplace_back(index);
-                }
-                else{
-                    indices.emplace_back((unsigned int)vertices.size());
+                const auto insertion = vertexToIndex.emplace(vertex, static_cast<unsigned int>(vertices.size()));
+                if(insertion.second){
                     vertices.emplace_back(vertex);
-                    vertexSet.insert(vertex);
                 }
+                indices[i] = insertion.first->second;
             }
-            assert(indices.size()==3);
             triangles.emplace_back(indices[0], indices[1], indices[2]);
 
 #if !NDEBUG
@@ -351,30 +343,28 @@ std::shared_ptr<ModelSpaceMesh> FileParser::parseFileBinarySTL(const std::string
 
     unsigned int numTriangles = readBinaryUnsignedIntegerLittleEndian(stream);
 
-    std::unordered_set<Vertex> vertexSet;
+    std::unordered_map<Vertex, unsigned int> vertexToIndex;
     std::vector<Vertex> vertices;
     std::vector<IndexTriangle> triangles;
+
+    const auto reserveCount = static_cast<size_t>(numTriangles);
+    vertexToIndex.reserve(reserveCount);
+    vertices.reserve(reserveCount);
     triangles.reserve(numTriangles);
+
     char attributes[2];
     for(unsigned int i=0; i<numTriangles; i++){
-        std::vector<unsigned int> indices;
-        glm::vec3 normalVector = readBinaryVertexLittleEndian(stream); // TODO verify
+        std::array<unsigned int, 3> indices{};
+        [[maybe_unused]] glm::vec3 normalVector = readBinaryVertexLittleEndian(stream); // TODO verify
         for(int j=0; j<3; j++){
             Vertex vertex = readBinaryVertexLittleEndian(stream);
             // We try to find if the vertex already exists, as we don't want to duplicate it
-            if(vertexSet.find(vertex)!=vertexSet.end()){
-                auto position = std::find(vertices.rbegin(), vertices.rend(), vertex); // Searching the list backwards significantly speeds up the search
-                auto index = (unsigned int)(vertices.size() - std::distance(vertices.rbegin(), position) - 1);
-                assert(index < vertices.size());
-                indices.emplace_back(index);
-            }
-            else{
-                indices.emplace_back((unsigned int) vertices.size());
+            const auto insertion = vertexToIndex.emplace(vertex, static_cast<unsigned int>(vertices.size()));
+            if(insertion.second){
                 vertices.emplace_back(vertex);
-                vertexSet.insert(vertex);
             }
+            indices[j] = insertion.first->second;
         }
-        assert(indices.size()==3);
         triangles.emplace_back(indices[0], indices[1], indices[2]);
         stream.read(attributes, 2);
     }
